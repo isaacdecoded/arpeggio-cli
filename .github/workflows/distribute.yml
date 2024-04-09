@@ -1,0 +1,41 @@
+name: Arpeggio CLI distribution
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [1.77.0]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: ${{ matrix.rust }}
+        override: true
+    - name: Build
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --release
+    - name: Run tests
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: arpeggio-cli-${{ matrix.os }}
+        path: target/release/arpeggio-cli
