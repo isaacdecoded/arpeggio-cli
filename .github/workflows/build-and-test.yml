@@ -1,4 +1,4 @@
-name: Arpeggio CLI distribution
+name: Build and test
 
 on:
   push:
@@ -34,8 +34,3 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: test
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: arpeggio-cli-${{ matrix.os }}
-        path: target/release/arpeggio-cli

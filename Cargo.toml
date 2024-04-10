@@ -1,6 +1,6 @@
 [package]
 name = "arpeggio-cli"
-version = "1.0.0"
+version = "0.0.1"
 edition = "2021"
 authors = ["Isaac Herrera <isaacdecoded@gmail.com>"]
 description = "CLI for Arpeggio-based projects"

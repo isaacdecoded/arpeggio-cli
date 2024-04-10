@@ -52,6 +52,7 @@ use crate::cli::bounded_context::{
 enum ArpeggioCommand {
     New(NewCommand),
     Add(AddCommand),
+    Version,
 }
 
 #[derive(Parser)]
@@ -209,19 +210,10 @@ async fn main() -> Result<()> {
     let filesystem_bounded_context_repository = FilesystemBoundedContextRepository;
     let args = ArpeggioCli::parse();
     match args.command {
+        ArpeggioCommand::Version => {
+            println!("Arpeggio CLI v{}", env!("CARGO_PKG_VERSION"));
+        }
         ArpeggioCommand::New(new_command) => {
-            /*
-            let exists = FilesystemOperations::check_directory(&new_command.project_name)?;
-            if exists {
-                error!("Project with name <{}> already exists", new_command.project_name);
-                return Err(
-                    anyhow::anyhow!(
-                        "Project with name <{}> already exists",
-                        new_command.project_name
-                    )
-                );
-            }
-            */
             info!("Creating project...");
             project_service.create_project(&new_command.project_name).await?;
         }
