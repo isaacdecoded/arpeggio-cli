@@ -1,14 +1,13 @@
 mod core;
 mod cli;
 
-use std::{ sync::{ Arc, Mutex }, vec };
-use core::application::use_case_input_port::UseCaseInputPort;
-
-use log::{ info, error };
-use anyhow::Result;
 use clap::Parser;
+use anyhow::Result;
+use log::{ info, error };
+use std::sync::{ Arc, Mutex };
 use dialoguer::{ MultiSelect, Select };
 
+use core::application::use_case_input_port::UseCaseInputPort;
 use crate::cli::bounded_context::{
     domain::{
         services::project_service::ProjectService,

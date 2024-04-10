@@ -22,8 +22,7 @@ impl ProjectService for FilesystemProjectService {
         self.check_directory(project_name)?;
         Command::new("git")
             .arg("clone")
-            // .arg("https://github.com/isaacdecoded/arpeggio-rs")
-            .arg("https://github.com/interest-protocol/sui-dca-bot.git")
+            .arg("https://github.com/isaacdecoded/arpeggio-rs")
             .arg(project_name)
             .output()
             .context("Failed to create the project")?;
