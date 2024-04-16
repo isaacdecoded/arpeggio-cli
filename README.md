@@ -1,6 +1,6 @@
 # ARPEGGIO CLI
 
-The Arpeggio CLI tools provides an interface for managing projects based on the [Arpeggio template](https://github.com/isaacdecoded/arpeggio) and enforces the practice of __Domain-driven Design (DDD)__, __Clean Architecture__ and __Command and Query Responsibility Segregation (CQRS)__ approaches.
+The Arpeggio CLI tool provides an interface for managing projects based on the [Arpeggio template](https://github.com/isaacdecoded/arpeggio), enforcing the practice of __Domain-driven Design (DDD)__, __Clean Architecture__ and __Command and Query Responsibility Segregation (CQRS)__ approaches.
 
 ### Requirements
 

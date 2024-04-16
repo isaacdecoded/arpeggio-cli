@@ -5,7 +5,10 @@ use async_trait::async_trait;
 use crate::{
     cli::bounded_context::domain::{
         entities::bounded_context::BoundedContext,
-        repositories::bounded_context_repository::BoundedContextRepository,
+        repositories::bounded_context_repository::{
+            BoundedContextRepository,
+            BoundedContextRepositoryError,
+        },
         value_objects::{
             aggregate::{ Aggregate, AggregateValue },
             aggregate_layer::{ AggregateLayer, AggregateLayerValue },
@@ -71,13 +74,18 @@ impl FilesystemBoundedContextRepository {
 
 #[async_trait]
 impl BoundedContextRepository for FilesystemBoundedContextRepository {
-    async fn write_bounded_context(&self, bounded_context: &BoundedContext) -> Result<()> {
+    async fn write_bounded_context(
+        &self,
+        bounded_context: &BoundedContext
+    ) -> Result<(), BoundedContextRepositoryError> {
         let bounded_context_path = format!(
             "{}/{}",
             Self::SOURCE_DIR,
             &bounded_context.get_id().to_string()
         );
-        self.create_directory(&bounded_context_path)?;
+        self
+            .create_directory(&bounded_context_path)
+            .map_err(|e| BoundedContextRepositoryError::WriteError(e.to_string()))?;
         bounded_context.aggregates.iter().for_each(|aggregate| {
             let aggregate_name = &aggregate.get_value().name;
             let aggregate_path = format!("{}/{}", bounded_context_path, aggregate_name.get_value());
@@ -125,17 +133,23 @@ impl BoundedContextRepository for FilesystemBoundedContextRepository {
     async fn read_bounded_context(
         &self,
         bounded_context_id: &IdentityObject
-    ) -> Result<Option<BoundedContext>> {
+    ) -> Result<Option<BoundedContext>, BoundedContextRepositoryError> {
         let bounded_context_path = format!(
             "{}/{}",
             Self::SOURCE_DIR,
             bounded_context_id.get_value()
         );
-        if !self.check_directory(&bounded_context_path)? {
-            return Ok(None);
+        let exists = self
+            .check_directory(&bounded_context_path)
+            .map_err(|e| BoundedContextRepositoryError::ReadError(e.to_string()))?;
+        if !exists {
+            return Err(
+                BoundedContextRepositoryError::NotFound(bounded_context_id.get_value().to_string())
+            );
         }
         let aggregate_directories = fs
-            ::read_dir(bounded_context_path.clone())?
+            ::read_dir(bounded_context_path.clone())
+            .map_err(|e| BoundedContextRepositoryError::ReadError(e.to_string()))?
             .filter_map(Result::ok)
             .filter(|e|
                 e

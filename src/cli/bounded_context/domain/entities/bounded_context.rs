@@ -1,5 +1,4 @@
 use anyhow::Result;
-use chrono::{ DateTime, Local };
 use crate::{
     cli::bounded_context::domain::{
         enums::{
@@ -132,16 +131,8 @@ impl AggregateRoot<IdentityObject> for BoundedContext {
 }
 
 impl Entity<IdentityObject> for BoundedContext {
-    fn get_id(&self) -> &String {
-        self.id.get_value()
-    }
-
-    fn get_created_at(&self) -> &DateTime<Local> {
-        todo!()
-    }
-
-    fn get_updated_at(&self) -> Option<&DateTime<Local>> {
-        todo!()
+    fn get_id(&self) -> &IdentityObject {
+        &self.id
     }
 
     fn update(&mut self) {

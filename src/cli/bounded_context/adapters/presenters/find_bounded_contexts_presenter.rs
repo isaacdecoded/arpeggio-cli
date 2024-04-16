@@ -1,5 +1,5 @@
+use std::error::Error;
 use async_trait::async_trait;
-use anyhow::{ Result, Error };
 use crate::core::application::use_case_output_port::UseCaseOutputPort;
 use crate::cli::bounded_context::application::queries::find_bounded_contexts_use_case::FindBoundedContextsResponseModel;
 
@@ -17,13 +17,11 @@ impl FindBoundedContextsPresenter {
 
 #[async_trait]
 impl UseCaseOutputPort<FindBoundedContextsResponseModel> for FindBoundedContextsPresenter {
-    async fn success(&self, response_model: FindBoundedContextsResponseModel) -> Result<()> {
-        (self.bounded_contexts_catcher)(response_model.bounded_contexts);
-        Ok(())
+    async fn success(&self, response_model: FindBoundedContextsResponseModel) {
+        (self.bounded_contexts_catcher)(response_model.bounded_contexts)
     }
 
-    async fn failure(&self, error: &Error) -> Result<()> {
-        eprintln!("{}", error.to_string());
-        Ok(())
+    async fn failure(&self, error: Box<dyn Error + Send>) {
+        eprintln!("{}", error)
     }
 }

@@ -1,7 +1,10 @@
 use anyhow::Result;
 use std::fs;
 use async_trait::async_trait;
-use crate::cli::bounded_context::domain::repositories::find_bounded_contexts_repository::FindBoundedContextsRepository;
+use crate::cli::bounded_context::domain::repositories::find_bounded_contexts_repository::{
+    FindBoundedContextsRepository,
+    FindBoundedContextsRepositoryError,
+};
 
 pub struct FilesystemFindBoundedContextsRepository;
 
@@ -11,9 +14,12 @@ impl FilesystemFindBoundedContextsRepository {
 
 #[async_trait]
 impl FindBoundedContextsRepository<String> for FilesystemFindBoundedContextsRepository {
-    async fn list_bounded_contexts(&self) -> Result<Vec<String>> {
+    async fn list_bounded_contexts(
+        &self
+    ) -> Result<Vec<String>, FindBoundedContextsRepositoryError> {
         let bounded_context_directories = fs
-            ::read_dir(Self::SOURCE_DIR)?
+            ::read_dir(Self::SOURCE_DIR)
+            .map_err(|e| FindBoundedContextsRepositoryError::ListError(e.to_string()))?
             .filter_map(Result::ok)
             .filter(|e|
                 e

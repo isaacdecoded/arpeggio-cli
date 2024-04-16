@@ -1,4 +1,3 @@
-use anyhow::Result;
 use async_trait::async_trait;
 use crate::{
     cli::bounded_context::domain::repositories::find_bounded_contexts_repository::FindBoundedContextsRepository,
@@ -33,11 +32,17 @@ impl<'a> FindBoundedContextsUseCase<'a> {
 
 #[async_trait]
 impl<'a> UseCaseInputPort<FindBoundedContextsRequestModel> for FindBoundedContextsUseCase<'a> {
-    async fn interact(&self, _request_model: FindBoundedContextsRequestModel) -> Result<()> {
-        let bounded_contexts = self.repository.list_bounded_contexts().await?;
-        self.output_port.success(FindBoundedContextsResponseModel {
-            bounded_contexts,
-        }).await?;
-        Ok(())
+    async fn interact(&self, _request_model: FindBoundedContextsRequestModel) {
+        let bounded_contexts = self.repository.list_bounded_contexts().await;
+        match bounded_contexts {
+            Ok(bounded_contexts) => {
+                self.output_port.success(FindBoundedContextsResponseModel {
+                    bounded_contexts,
+                }).await;
+            }
+            Err(error) => {
+                self.output_port.failure(Box::new(error)).await;
+            }
+        }
     }
 }

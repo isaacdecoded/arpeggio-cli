@@ -55,14 +55,13 @@ mod tests {
         },
         infrastructure::in_memory_domain_event_bus::InMemoryDomainEventBus,
     };
-    use chrono::prelude::{ DateTime, Local };
     use async_trait::async_trait;
-    use std::any::Any;
+    use std::{ any::Any, time::SystemTime };
 
     struct TestSubscriber;
     struct TestDomainEvent {
         aggregate_root_id: String,
-        occurring_time: DateTime<Local>,
+        occurring_time: SystemTime,
     }
 
     impl TestSubscriber {
@@ -75,7 +74,7 @@ mod tests {
         pub fn new() -> Self {
             Self {
                 aggregate_root_id: "aggregate_root_id".to_string(),
-                occurring_time: Local::now(),
+                occurring_time: SystemTime::now(),
             }
         }
     }
@@ -103,7 +102,7 @@ mod tests {
             &self.aggregate_root_id
         }
 
-        fn get_occurring_time(&self) -> &DateTime<Local> {
+        fn get_occurring_time(&self) -> &SystemTime {
             &self.occurring_time
         }
 

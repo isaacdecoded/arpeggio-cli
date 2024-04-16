@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use crate::{
@@ -41,24 +43,34 @@ impl<'a> CreateBoundedContextUseCase<'a> {
             output_port,
         }
     }
-}
 
-#[async_trait]
-impl<'a> UseCaseInputPort<CreateBoundedContextRequestModel> for CreateBoundedContextUseCase<'a> {
-    async fn interact(&self, request_model: CreateBoundedContextRequestModel) -> Result<()> {
+    async fn try_interact(
+        &self,
+        request_model: CreateBoundedContextRequestModel
+    ) -> Result<CreateBoundedContextResponseModel, Box<dyn Error + Send + Sync>> {
         let bounded_context = BoundedContext::new(
             IdentityObject::new(request_model.bounded_context_name),
             vec![]
         );
 
-        if let Err(error) = self.repository.write_bounded_context(&bounded_context).await {
-            self.output_port.failure(&error).await?;
-            return Err(error);
-        }
-
-        self.output_port.success(CreateBoundedContextResponseModel {
+        self.repository.write_bounded_context(&bounded_context).await?;
+        Ok(CreateBoundedContextResponseModel {
             bounded_context_id: bounded_context.get_id().to_string(),
-        }).await?;
-        Ok(())
+        })
+    }
+}
+
+#[async_trait]
+impl<'a> UseCaseInputPort<CreateBoundedContextRequestModel> for CreateBoundedContextUseCase<'a> {
+    async fn interact(&self, request_model: CreateBoundedContextRequestModel) {
+        let result = self.try_interact(request_model).await;
+        match result {
+            Ok(response_model) => {
+                self.output_port.success(response_model).await;
+            }
+            Err(error) => {
+                self.output_port.failure(error).await;
+            }
+        }
     }
 }

@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use crate::{
@@ -103,11 +105,11 @@ impl<'a> AddAggregateUseCase<'a> {
             })
             .collect()
     }
-}
 
-#[async_trait]
-impl<'a> UseCaseInputPort<AddAggregateRequestModel> for AddAggregateUseCase<'a> {
-    async fn interact(&self, request_model: AddAggregateRequestModel) -> Result<()> {
+    async fn try_interact(
+        &self,
+        request_model: AddAggregateRequestModel
+    ) -> Result<AddAggregateResponseModel, Box<dyn Error + Send + Sync>> {
         let result = self.repository.read_bounded_context(
             &IdentityObject::new(request_model.bounded_context_name)
         ).await?;
@@ -119,18 +121,27 @@ impl<'a> UseCaseInputPort<AddAggregateRequestModel> for AddAggregateUseCase<'a> 
                     |layers| self.prepare_aggregate_layers(layers)
                 );
                 bounded_context.add_aggregate(&name, &layers)?;
-                if let Err(error) = self.repository.write_bounded_context(&bounded_context).await {
-                    self.output_port.failure(&error).await?;
-                    return Err(error);
-                }
-                self.output_port.success(AddAggregateResponseModel {
+                self.repository.write_bounded_context(&bounded_context).await?;
+                Ok(AddAggregateResponseModel {
                     aggregate_name: name.get_value().to_string(),
-                }).await?;
+                })
             }
-            None => {
-                self.output_port.failure(&anyhow::anyhow!("Bounded context not found")).await?;
+            None => { Err("Bounded context not found".into()) }
+        }
+    }
+}
+
+#[async_trait]
+impl<'a> UseCaseInputPort<AddAggregateRequestModel> for AddAggregateUseCase<'a> {
+    async fn interact(&self, request_model: AddAggregateRequestModel) {
+        let result = self.try_interact(request_model).await;
+        match result {
+            Ok(response_model) => {
+                self.output_port.success(response_model).await;
+            }
+            Err(error) => {
+                self.output_port.failure(error).await;
             }
         }
-        Ok(())
     }
 }

@@ -112,7 +112,7 @@ async fn ask_bounded_context() -> Result<String> {
         &filesystem_find_bounded_contexts_repository,
         &find_bounded_contexts_presenter
     );
-    find_bounded_contexts_use_case.interact(FindBoundedContextsRequestModel).await?;
+    find_bounded_contexts_use_case.interact(FindBoundedContextsRequestModel).await;
     let bounded_contexts = caught_bounded_contexts.lock().unwrap();
     if bounded_contexts.is_empty() {
         error!("No bounded contexts found");
@@ -227,7 +227,7 @@ async fn main() -> Result<()> {
 
                     create_bounded_context_use_case.interact(CreateBoundedContextRequestModel {
                         bounded_context_name: command.bounded_context_name,
-                    }).await?;
+                    }).await;
                 }
                 AddComponentCommand::Aggregate(aggregate_command) => {
                     let add_aggregate_presenter = AddAggregatePresenter;
@@ -248,7 +248,7 @@ async fn main() -> Result<()> {
                         aggregate_name: aggregate_command.aggregate_name,
                         bounded_context_name,
                         aggregate_layers,
-                    }).await?;
+                    }).await;
                 }
             }
         }
