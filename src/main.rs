@@ -130,9 +130,6 @@ async fn get_bounded_contexts() -> Result<Vec<BoundedContextReadModel>> {
     );
     find_bounded_contexts_use_case.interact(FindBoundedContextsRequestModel).await;
     let bounded_contexts = caught_bounded_contexts.lock().unwrap().to_vec();
-    if bounded_contexts.is_empty() {
-        return Err(anyhow::anyhow!("No bounded contexts found"));
-    }
     Ok(bounded_contexts)
 }
 
@@ -174,6 +171,9 @@ async fn add_component(
     bounded_contexts: Vec<BoundedContextReadModel>,
     bounded_context_repository: &FilesystemBoundedContextRepository
 ) -> Result<()> {
+    if bounded_contexts.is_empty() {
+        return Err(anyhow::anyhow!("No bounded contexts found"));
+    }
     let add_component_use_case = AddComponentUseCase::new(
         bounded_context_repository,
         &AddComponentPresenter
@@ -234,6 +234,9 @@ async fn main() -> Result<()> {
                     }).await;
                 }
                 AddComponentCommand::Aggregate(aggregate_command) => {
+                    if bounded_contexts.is_empty() {
+                        return Err(anyhow::anyhow!("No bounded contexts found"));
+                    }
                     let add_aggregate_presenter = AddAggregatePresenter;
                     let add_aggregate_use_case = AddAggregateUseCase::new(
                         &filesystem_bounded_context_repository,
