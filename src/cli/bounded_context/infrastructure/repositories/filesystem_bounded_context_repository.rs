@@ -130,7 +130,9 @@ impl BoundedContextRepository for FilesystemBoundedContextRepository {
                         component.get_value().component_name.get_value()
                     );
                     self.create_directory(&component_path).unwrap();
-                    fs::write(component_file_path, "").unwrap();
+                    if !Path::new(&component_file_path).exists() {
+                        fs::write(component_file_path, "").unwrap();
+                    }
                     let component_definitions = self.get_dir_file_names(&component_path).unwrap();
                     self.initialize_directory(&component_path, component_definitions).unwrap();
                 });
