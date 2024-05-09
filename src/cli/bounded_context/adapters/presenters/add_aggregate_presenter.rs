@@ -12,6 +12,6 @@ impl UseCaseOutputPort<AddAggregateResponseModel> for AddAggregatePresenter {
     }
 
     async fn failure(&self, error: Box<dyn Error + Send>) {
-        eprintln!("{}", error)
+        eprintln!("Failed to add aggregate due to: {}", error)
     }
 }

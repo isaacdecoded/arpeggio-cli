@@ -1,14 +1,19 @@
 use std::error::Error;
 use async_trait::async_trait;
 use crate::core::application::use_case_output_port::UseCaseOutputPort;
-use crate::cli::bounded_context::application::queries::find_bounded_contexts_use_case::FindBoundedContextsResponseModel;
+use crate::cli::bounded_context::application::queries::find_bounded_contexts_use_case::{
+    FindBoundedContextsResponseModel,
+    BoundedContextReadModel,
+};
 
 pub struct FindBoundedContextsPresenter {
-    bounded_contexts_catcher: Box<dyn Fn(Vec<String>) + Sync + Send>,
+    bounded_contexts_catcher: Box<dyn Fn(Vec<BoundedContextReadModel>) + Sync + Send>,
 }
 
 impl FindBoundedContextsPresenter {
-    pub fn new(bounded_contexts_catcher: impl Fn(Vec<String>) + 'static + Send + Sync) -> Self {
+    pub fn new(
+        bounded_contexts_catcher: impl Fn(Vec<BoundedContextReadModel>) + 'static + Send + Sync
+    ) -> Self {
         Self {
             bounded_contexts_catcher: Box::new(bounded_contexts_catcher),
         }
@@ -22,6 +27,6 @@ impl UseCaseOutputPort<FindBoundedContextsResponseModel> for FindBoundedContexts
     }
 
     async fn failure(&self, error: Box<dyn Error + Send>) {
-        eprintln!("{}", error)
+        eprintln!("Failed to find bounded contexts due to: {}", error)
     }
 }

@@ -4,14 +4,11 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crate::{
     cli::bounded_context::domain::{
-        enums::{
-            aggregate_layer_component::AggregateLayerComponent,
-            aggregate_layer_name::AggregateLayerName,
-        },
+        enums::layer_name::LayerName,
         repositories::bounded_context_repository::BoundedContextRepository,
         value_objects::{
             aggregate_layer::{ AggregateLayer, AggregateLayerValue },
-            aggregate_name::AggregateName,
+            layer_component::LayerComponent,
         },
     },
     core::{
@@ -24,8 +21,8 @@ use crate::{
 };
 
 pub struct AddAggregateLayerRequestModel {
-    pub layer_name: AggregateLayerName,
-    pub components: Vec<AggregateLayerComponent>,
+    pub layer_name: LayerName,
+    pub components: Vec<LayerComponent>,
 }
 
 pub struct AddAggregateRequestModel {
@@ -57,36 +54,20 @@ impl<'a> AddAggregateUseCase<'a> {
     fn get_aggregate_layers(&self) -> Vec<AggregateLayer> {
         vec![
             AggregateLayer::new(AggregateLayerValue {
-                name: AggregateLayerName::Domain,
-                components: vec![
-                    AggregateLayerComponent::Entities,
-                    AggregateLayerComponent::Events,
-                    AggregateLayerComponent::ValueObjects,
-                    AggregateLayerComponent::Repositories,
-                    AggregateLayerComponent::Services
-                ],
+                name: LayerName::Domain,
+                components: vec![],
             }),
             AggregateLayer::new(AggregateLayerValue {
-                name: AggregateLayerName::Application,
-                components: vec![
-                    AggregateLayerComponent::Commands,
-                    AggregateLayerComponent::Queries,
-                    AggregateLayerComponent::Subscribers
-                ],
+                name: LayerName::Application,
+                components: vec![],
             }),
             AggregateLayer::new(AggregateLayerValue {
-                name: AggregateLayerName::Adapters,
-                components: vec![
-                    AggregateLayerComponent::Controllers,
-                    AggregateLayerComponent::Presenters
-                ],
+                name: LayerName::Adapters,
+                components: vec![],
             }),
             AggregateLayer::new(AggregateLayerValue {
-                name: AggregateLayerName::Infrastructure,
-                components: vec![
-                    AggregateLayerComponent::Repositories,
-                    AggregateLayerComponent::Services
-                ],
+                name: LayerName::Infrastructure,
+                components: vec![],
             })
         ]
     }
@@ -115,15 +96,15 @@ impl<'a> AddAggregateUseCase<'a> {
         ).await?;
         match result {
             Some(mut bounded_context) => {
-                let name = AggregateName::new(request_model.aggregate_name);
+                let aggregate_id = IdentityObject::new(request_model.aggregate_name);
                 let layers = request_model.aggregate_layers.map_or_else(
                     || self.get_aggregate_layers(),
                     |layers| self.prepare_aggregate_layers(layers)
                 );
-                bounded_context.add_aggregate(&name, &layers)?;
+                bounded_context.add_aggregate(&aggregate_id, &layers)?;
                 self.repository.write_bounded_context(&bounded_context).await?;
                 Ok(AddAggregateResponseModel {
-                    aggregate_name: name.get_value().to_string(),
+                    aggregate_name: aggregate_id.get_value().to_string(),
                 })
             }
             None => { Err("Bounded context not found".into()) }

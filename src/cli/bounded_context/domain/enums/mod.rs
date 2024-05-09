@@ -1,2 +1,2 @@
-pub mod aggregate_layer_component;
-pub mod aggregate_layer_name;
+pub mod component_type;
+pub mod layer_name;

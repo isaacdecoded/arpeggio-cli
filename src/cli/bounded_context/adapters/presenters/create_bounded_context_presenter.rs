@@ -12,6 +12,6 @@ impl UseCaseOutputPort<CreateBoundedContextResponseModel> for CreateBoundedConte
     }
 
     async fn failure(&self, error: Box<dyn Error + Send>) {
-        eprintln!("{}", error)
+        eprintln!("Failed to create bounded context due to: {}", error)
     }
 }

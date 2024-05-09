@@ -9,18 +9,24 @@ use crate::{
 
 pub struct FindBoundedContextsRequestModel;
 
+#[derive(Clone)]
+pub struct BoundedContextReadModel {
+    pub name: String,
+    pub aggregates: Vec<String>,
+}
+
 pub struct FindBoundedContextsResponseModel {
-    pub bounded_contexts: Vec<String>,
+    pub bounded_contexts: Vec<BoundedContextReadModel>,
 }
 
 pub struct FindBoundedContextsUseCase<'a> {
-    repository: &'a dyn FindBoundedContextsRepository<String>,
+    repository: &'a dyn FindBoundedContextsRepository<BoundedContextReadModel>,
     output_port: &'a dyn UseCaseOutputPort<FindBoundedContextsResponseModel>,
 }
 
 impl<'a> FindBoundedContextsUseCase<'a> {
     pub fn new(
-        repository: &'a dyn FindBoundedContextsRepository<String>,
+        repository: &'a dyn FindBoundedContextsRepository<BoundedContextReadModel>,
         output_port: &'a dyn UseCaseOutputPort<FindBoundedContextsResponseModel>
     ) -> Self {
         Self {

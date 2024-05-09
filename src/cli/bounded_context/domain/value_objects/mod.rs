@@ -1,3 +1,3 @@
-pub mod aggregate;
 pub mod aggregate_layer;
-pub mod aggregate_name;
+pub mod layer_component;
+pub mod component_name;
