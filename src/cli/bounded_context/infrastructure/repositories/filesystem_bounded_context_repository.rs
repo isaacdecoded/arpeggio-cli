@@ -1,10 +1,11 @@
-use std::path::Path;
+use std::{ path::Path, str::FromStr };
 use anyhow::Result;
 use std::fs;
 use async_trait::async_trait;
 use crate::{
     cli::bounded_context::domain::{
         entities::{ aggregate::Aggregate, bounded_context::BoundedContext },
+        enums::component_type::ComponentType,
         repositories::bounded_context_repository::{
             BoundedContextRepository,
             BoundedContextRepositoryError,
@@ -221,42 +222,44 @@ impl BoundedContextRepository for FilesystemBoundedContextRepository {
                             .filter_map(|e| e.file_name().into_string().ok())
                             .collect::<Vec<_>>();
                         let mut layer_components = vec![];
-                        layer_component_directories.iter().for_each(|component_directory| {
-                            let component_path = format!(
-                                "{}/{}",
-                                layer_path,
-                                component_directory.clone()
-                            );
-                            let component_files = fs
-                                ::read_dir(component_path)
-                                .unwrap()
-                                .filter_map(Result::ok)
-                                .filter(|e|
-                                    e
-                                        .file_type()
-                                        .map(|t| t.is_file())
-                                        .unwrap_or(false)
-                                )
-                                .filter_map(|e| e.file_name().into_string().ok())
-                                .collect::<Vec<_>>();
-                            component_files.iter().for_each(|file| {
-                                layer_components.push(
-                                    LayerComponent::new(LayerComponentValue {
-                                        component_type: component_directory.parse().unwrap(),
-                                        component_name: ComponentName::new(file.replace(".rs", "")),
-                                    })
-                                )
+                        layer_component_directories
+                            .iter()
+                            .filter(|component_directory| {
+                                ComponentType::from_str(component_directory).is_ok()
+                            })
+                            .for_each(|component_directory| {
+                                let component_path = format!(
+                                    "{}/{}",
+                                    layer_path,
+                                    component_directory.clone()
+                                );
+                                let component_files = fs
+                                    ::read_dir(component_path)
+                                    .unwrap()
+                                    .filter_map(Result::ok)
+                                    .filter(|e|
+                                        e
+                                            .file_type()
+                                            .map(|t| t.is_file())
+                                            .unwrap_or(false)
+                                    )
+                                    .filter_map(|e| e.file_name().into_string().ok())
+                                    .collect::<Vec<_>>();
+                                component_files.iter().for_each(|file| {
+                                    layer_components.push(
+                                        LayerComponent::new(LayerComponentValue {
+                                            component_type: component_directory.parse().unwrap(),
+                                            component_name: ComponentName::new(
+                                                file.replace(".rs", "")
+                                            ),
+                                        })
+                                    )
+                                });
                             });
-                        });
                         AggregateLayer::new(AggregateLayerValue {
                             name: layer.parse().unwrap(),
                             components: layer_components,
                         })
-                        /*layer_component_directories
-                            .iter()
-                            .map(|component| component.parse().unwrap())
-                            .collect::<Vec<_>>();
-                        LayerComponent*/
                     })
                     .collect::<Vec<_>>();
                 Aggregate::new(IdentityObject::new(aggregate_dir.to_string()), layers)
