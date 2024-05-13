@@ -1,2 +1,2 @@
-pub mod bounded_context;
 pub mod aggregate;
+pub mod bounded_context;

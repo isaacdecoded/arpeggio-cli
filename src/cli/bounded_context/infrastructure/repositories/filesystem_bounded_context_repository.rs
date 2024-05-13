@@ -50,11 +50,12 @@ impl FilesystemBoundedContextRepository {
         modules.extend(self.get_dir_names(path)?);
         modules.sort();
         modules.dedup();
-        let module_exports = modules
+        let mut module_exports = modules
             .iter()
             .map(|module| format!("pub mod {};", module))
             .collect::<Vec<_>>()
             .join("\n");
+        module_exports.push('\n');
         fs::write(index_file_path, module_exports)?;
         Ok(())
     }
