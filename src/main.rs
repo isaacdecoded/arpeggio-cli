@@ -133,15 +133,17 @@ async fn get_bounded_contexts() -> Result<Vec<BoundedContextReadModel>> {
     Ok(bounded_contexts)
 }
 
-fn ask_is_custom_layers_mode() -> Result<bool> {
+fn ask_is_default_layers_mode() -> Result<bool> {
     let selection = Select::new()
-        .with_prompt("Do you want to create custom layers?")
+        .with_prompt(
+            "Do you want to initialize default layers? (domain, application, adapters and infrastructure)"
+        )
         .default(0)
-        .item("No")
         .item("Yes")
+        .item("No")
         .interact()
         .unwrap();
-    Ok(selection == 1)
+    Ok(selection == 0)
 }
 
 fn ask_aggregate_layers() -> Result<Option<Vec<AddAggregateLayerRequestModel>>> {
@@ -250,9 +252,9 @@ async fn main() -> Result<()> {
                                 .collect()
                         )?
                     );
-                    let is_custom_layer_mode = ask_is_custom_layers_mode()?;
+                    let is_default_layers_mode = ask_is_default_layers_mode()?;
                     let mut aggregate_layers: Option<Vec<AddAggregateLayerRequestModel>> = None;
-                    if is_custom_layer_mode {
+                    if !is_default_layers_mode {
                         aggregate_layers = ask_aggregate_layers()?;
                     }
                     add_aggregate_use_case.interact(AddAggregateRequestModel {
